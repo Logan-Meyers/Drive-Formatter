@@ -2,8 +2,6 @@
 
 Import-Module Storage
 
-# ---------- Drive Abstractions ----------
-
 # --------- Abstraction and Extra Functions ---------
 
 function Read-Colonless($prompt) {
@@ -151,6 +149,15 @@ function Show-FormatMenu {
         return
     }
 
+    Clear-Host
+
+    Write-Host "Please enter a name, for what you'd like to call this drive"
+    Write-Host "(Less than or equal to 8 characters)"
+    Write-Host "(Will automatically be converted to all caps)"
+    Write-Host ""
+    Write-Host "> " -NoNewline
+    $name = Read-Colonless
+
     # 1. Clear disk
     Clear-Disk -Number $chosenDrive -RemoveData -Confirm:$false
 
@@ -161,7 +168,7 @@ function Show-FormatMenu {
     $newPartition = New-Partition -DiskNumber $chosenDrive -UseMaximumSize -Offset 1MB -AssignDriveLetter
 
     # 4. Format partition - TEMP DEBUGGING
-    Format-Volume -DriveLetter $newPartition.DriveLetter -FileSystem FAT -NewFileSystemLabel "NEWDRIVE" -Confirm:$false
+    Format-Volume -DriveLetter $newPartition.DriveLetter -FileSystem FAT -NewFileSystemLabel $name -Confirm:$false
 
     # 5. Open in explorer
     Start-Process "explorer.exe" "$($newPartition.DriveLetter):\"
