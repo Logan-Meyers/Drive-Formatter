@@ -122,7 +122,7 @@ function Show-ListDrives {
         foreach ($disk in $drives) {
             Write-Host "Disk $($disk.Number): $($disk.FriendlyName), Size: $([math]::Round($disk.Size/1GB,2)) GB"
         }
-    } elseif ($Is_MacOS) {
+    } else {
         Write-Host $drives
     }
     Write-Host ""
