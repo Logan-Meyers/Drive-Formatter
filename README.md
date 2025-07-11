@@ -38,3 +38,4 @@ Low-level (script) functionality
 - Allow renaming of a partition
 - Allow copying all files off of partition before formatting, and move back after formatting
 - Make cross-platform (Windows & MacOS)
+- Batch format drives
