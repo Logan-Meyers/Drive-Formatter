@@ -165,7 +165,7 @@ function Show-FormatMenu {
     Set-Disk -Number $chosenDrive -PartitionStyle MBR
 
     # 3. Create a new partition with whole disk
-    $newPartition = New-Partition -DiskNumber $chosenDrive -UseMaximumSize -Offset 1MB -AssignDriveLetter
+    $newPartition = New-Partition -DiskNumber $chosenDrive -Size 2GB -Offset 1MB -AssignDriveLetter
 
     # 4. Format partition - TEMP DEBUGGING
     Format-Volume -DriveLetter $newPartition.DriveLetter -FileSystem FAT -NewFileSystemLabel $name -Confirm:$false
