@@ -1,3 +1,5 @@
+### This function lists all drives other than 0, and asks for which drive the user would like to manage
+### For example, this might return 1
 function Get-WantedDrive($actionPrompt) {
     # list of disks
     $disks = Get-Disk | Where-Object { $_.Number -ne 0 }
@@ -62,6 +64,9 @@ function Get-WantedDrive($actionPrompt) {
     $selected
 }
 
+### This function handles checking a drive
+### This will check the formatting of the drive and give a success value
+### This might return 0 (fail) or 1 (success)
 function Show-CheckMenu {
     $chosenDrive = Get-WantedDrive("check")
 
@@ -103,6 +108,9 @@ function Show-CheckMenu {
     Clear-Host
 }
 
+### This function handles formatting a drive
+### This will format the drive, resulting in loss of data
+### This will return either a success value, either 0 (fail) or 1 (success)
 function Show-FormatMenu {
     $chosenDrive = Get-WantedDrive("format")
 

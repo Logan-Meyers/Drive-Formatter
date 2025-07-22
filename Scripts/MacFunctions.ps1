@@ -1,169 +1,271 @@
+### This function lists all drives external and physical, and asks for which drive the user wants to manage
+### For example, this might return /dev/disk3
 function Get-WantedDrive($actionPrompt) {
-    Write-Host "Mac Unsupported!"
-    # # list of disks
-    # $disks = Get-Disk | Where-Object { $_.Number -ne 0 }
+    function Get-ExternalDisks {
+        $diskList = diskutil list | Out-String
+        $blocks = $diskList -split "(/dev/disk\d+)" | Where-Object { $_ -match "^/dev/disk\d+" }
+        $disks = @()
+
+        foreach ($block in $blocks) {
+            if ($block -match "^(/dev/disk\d+)") {
+                $diskId = $matches[1]
+
+                # Get info for this disk
+                $info = diskutil info $diskId
+
+                # Parse the relevant information manually
+                $infoDict = @{}
+                $info.Split("`n") | ForEach-Object {
+                    $line = $_.Trim()
+                    if ($line -match "^(.+?):\s*(.+)$") {
+                        $key = $matches[1].Trim()
+                        $value = $matches[2].Trim()
+                        $infoDict[$key] = $value
+                    }
+                }
+
+                # Only keep external drives
+                if ($infoDict['Device Location'] -eq 'External') {
+                    # Simplify size: capture only the number and unit (e.g., "2.0 GB")
+                    $size = $infoDict['Disk Size'] -replace '\s+\(\S*\)', ''
+                    $disks += [PSCustomObject]@{
+                        Id = $diskId
+                        Description = "Drive $diskId | $size"
+                    }
+                }
+            }
+        }
+        return $disks
+    }
+
+    # list of disks
+    $disks = Get-ExternalDisks
     
-    # # count disks
-    # $maxSelection = 1
+    # count disks
+    $maxSelection = $disks.Count + 1
 
-    # foreach ($disk in $disks) { $maxSelection += 1 }
+    # clear screen and init selection variables
+    $selected = 1
 
-    # # clear screen and init selection variables
-    # $selected = 1
+    Clear-Host
 
-    # Clear-Host
+    while ($true) {
+        Clear-Host
 
-    # while ($true) {
-    #     Clear-Host
+        Write-Host "Use arrow keys to change which drive you'd like to $actionPrompt"
+        Write-Host "Press enter to select the drive and continue"
+        Write-Host "Press escape to go back to the main menu"
+        Write-Host ""
 
-    #     Write-Host "Use arrow keys to change which drive you'd like to $actionPrompt"
-    #     Write-Host "Press enter to select the drive and continue"
-    #     Write-Host "Press escape to go back to the main menu"
-    #     Write-Host ""
+        $cur = 0
+        foreach ($disk in $disks) {
+            $cur += 1
 
-    #     $cur = 0
-    #     foreach ($disk in $disks) {
-    #         $cur += 1
+            Write-Host "$(if ($cur -eq $selected) { '> ' } else { '  ' })Drive $($disk.Description)"
+        }
 
-    #         Write-Host "$(if ($cur -eq $selected) { '> ' } else { '  ' })Drive $($disk.Number) | $($disk.FriendlyName) | $([math]::round($disk.Size / 1GB, 2)) GB)"
-    #     }
-
-    #     Write-Host "$(if ($selected -eq $maxSelection) { '> ' } else { '  ' })Re-scan for drives"
+        Write-Host "$(if ($selected -eq $maxSelection) { '> ' } else { '  ' })Re-scan for drives"
         
-    #     # Get input from user
-    #     $key = [System.Console]::ReadKey($true)
+        # Get input from user
+        $key = [System.Console]::ReadKey($true)
 
-    #     switch ($key.Key) {
-    #         'UpArrow' {
-    #             if ($selected -gt 1) {
-    #                 $selected -= 1
-    #             }
-    #         }
-    #         'DownArrow' {
-    #             if ($selected -lt $maxSelection) {
-    #                 $selected += 1
-    #             }
-    #         }
-    #         'Enter' {
-    #             if ($selected -eq $maxSelection) {
-    #                 $disks = Get-Disk | Where-Object { $_.Number -ne 0 }
-    #                 $maxSelection = 1
-    #                 foreach ($disk in $disks) { $maxSelection += 1 }
-    #                 $selected = $maxSelection
-    #             } else {
-    #                 return $selected
-    #             }
-    #         }
-    #         'Escape' {
-    #             return $null
-    #         }
-    #     }
-    # }
+        switch ($key.Key) {
+            'UpArrow' {
+                if ($selected -gt 1) {
+                    $selected -= 1
+                }
+            }
+            'DownArrow' {
+                if ($selected -lt $maxSelection) {
+                    $selected += 1
+                }
+            }
+            'Enter' {
+                if ($selected -eq $maxSelection) {
+                    $disks = Get-ExternalDisks
+                    $maxSelection = $disks.Count + 1
+                    $selected = 1
+                } else {
+                    return $disks[$selected - 1].Id
+                }
+            }
+            'Escape' {
+                return $null
+            }
+        }
+    }
 
-    # $selected
+    $selected
 }
 
+### This function handles checking a drive
+### This will check the formatting of the drive and give a success value
+### This might return 0 (fail) or 1 (success)
 function Show-CheckMenu {
-    Write-Host "Mac Unsupported!"
-    # $chosenDrive = Get-WantedDrive("check")
+    $chosenDrive = Get-WantedDrive("check")
 
-    # # exit if no valid drive selected (< 1 or null)
-    # if (-not $chosenDrive) {
-    #     return
-    # }
+    # exit if no valid drive selected (< 1 or null)
+    if (-not $chosenDrive) {
+        return
+    }
 
-    # Clear-Host
+    Clear-Host
 
-    # # Get the first partition of the chosen drive
-    # $firstPartition = Get-Partition -DiskNumber $chosenDrive | Select-Object -First 1
+    # Get disk partition details using diskutil info
+    $diskList = diskutil list $chosenDrive | Out-String
 
-    # # Check if the partition exists
-    # if ($firstPartition) {
-    #     # Get the partition type and offset
-    #     $partitionType = $firstPartition.Type  # For GPT partitions
-    #     $partitionOffset = $firstPartition.Offset  # Offset in bytes
+    # Write-Host $diskList
 
-    #     # Check for FAT type (0E) and offset of 1024
-    #     if ($partitionType -eq 'XINT13' -and $partitionOffset -eq 1048576) {
-    #         Write-Host "Formatted correctly!"
-    #     } else {
-    #         Write-Host "Not formatted correctly!"
-    #         Write-Host "You'll need to format this drive from the main menu."
-    #         Write-Host ""
+    $partitions = $diskList | Where-Object { $_ -match "disk\ds\d+"} | ForEach-Object {
+        if ($_ -match "(disk\ds\d+)") { $matches[1] }
+    }
 
-    #         # debugging / additional info
-    #         if ($partitionType -ne "XINT13") {Write-Host "- Wrong partition type: $partitionType"}
-    #         if ($partitionOffset -ne 1048576) {Write-Host "- Wrong Offset: $partitionOffset"}
-    #     }
-    # } else {
-    #     Write-Host "No partitions found on the selected drive."
-    # }
+    $partitionCount = $partitions.Count
 
-    # Write-Host ""
-    # Write-Host "Press enter to continue back to main menu..."
-    # Read-Colonless
-    # Clear-Host
+    # Write-Host "Partitions found: $partitionCount"
+    # Write-Host "Partition list: $($partitions -join ', ')"
+
+
+    # Exit if the drive has no partitions
+    if ($partitionCount -lt 1) {
+        Write-Host "The USB Drive has no partitions! You'll need to format it."
+        Return 0
+    }
+
+    # Get info about first partition (disk#s1)
+    $firstPartInfo = @{}
+
+    $firstPartKeys = @(
+        "Volume Name",
+        "Partition Type",
+        "Partition Offset",
+        "Disk Size"
+    )
+    
+    $firstPartOutput = diskutil info $("$($chosenDrive)s1")
+
+    foreach ($line in $firstPartOutput) {
+        foreach ($key in $firstPartKeys) {
+            # match lines with keys
+            if ($line -match "^\s*$key\s*:\s*(.+)$") {
+                $firstPartInfo[$key] = $matches[1].Trim()
+            }
+        }
+    }
+
+    # Function to extract the first number before "Bytes" and convert to int64
+    function Get-BytesValue($text) {
+        if ($text -match "([\d,]+)\s*Bytes") {
+            # Remove commas if any, then convert to int64
+            $num = $matches[1] -replace ",", ""
+            return [int64]$num
+        }
+        return $null
+    }
+
+    # Extract numeric byte values
+    $partitionOffsetBytes = Get-BytesValue $firstPartInfo['Partition Offset']
+    $diskSizeBytes = Get-BytesValue $firstPartInfo['Disk Size']
+
+    $twoGB = 2 * 1024 * 1024 * 1024
+    $eightMb = 8 * 1024 * 1024
+
+    # Write-Host "Partition Offset (bytes): $partitionOffsetBytes"
+    # Write-Host "Disk Size (bytes): $diskSizeBytes"
+
+    $correctlyFormatted = 1
+
+    if ($firstPartInfo["Partition Type"] -ne "Windows_FAT_16" -and $firstPartInfo["Partition Type"] -ne "DOS_FAT_16") {
+        $correctlyFormatted = 0
+        Write-Host "The partition has the wrong partition type! ($($firstPartInfo["Partition Type"]))"
+    }
+
+    if ($partitionOffsetBytes -ne 1048576) {
+        $correctlyFormatted = 0
+        Write-Host "The partition has the wrong partition offset! ($partitionOffsetBytes)"
+    }
+
+    if ($diskSizeBytes -gt $twoGB -or $diskSizeBytes -lt $eightMB) {
+        $correctlyFormatted = 0
+        Write-Host "The partition has the wrong size! ($diskSizeBytes)"
+    }
+
+    Write-Host ""
+
+    if ($correctlyFormatted -gt 0) {
+        Write-Host "-- The partition is correctly formatted! --"
+    } else {
+        Write-Host "-- This drive will need to be formatted! --"
+    }
+
+    Write-Host ""
+    Write-Host "Press enter to continue back to main menu..."
+    Read-Host
+    Clear-Host
+
+    return 1
 }
 
+### This function handles formatting a drive
+### This will format the drive, resulting in loss of data
+### This will return either a success value, either 0 (fail) or 1 (success)
 function Show-FormatMenu {
-    Write-Host "Mac Unsupported!"
-    # $chosenDrive = Get-WantedDrive("format")
+    $chosenDrive = Get-WantedDrive "format"
 
-    # if (-not $chosenDrive) {
-    #     Clear-Host
-    #     return
-    # }
+    if (-not $chosenDrive) {
+        Clear-Host
+        return
+    }
 
-    # Clear-Host
+    Clear-Host
 
-    # $disk = Get-Disk | Where-Object { $_.Number -eq $chosenDrive}
+    Write-Host "You have selected drive $chosenDrive"
+    Write-Host "Are you sure you want to format this disk?"
+    Write-Host "This will DELETE ALL DATA. Backup important files if needed."
+    Write-Host ""
+    Write-Host "(y/N): " -NoNewLine
+    $confirmation = [System.Console]::ReadKey($true)
 
-    # if (-not $disk) {
-    #     Clear-Host
-    #     Write-Host "That drive does not exist anymore! Try again."
-    #     Write-Host ""
-    #     return
-    # }
+    if ($confirmation.Key -ne 'y') {
+        Clear-Host
+        Write-Host "Formatting Cancelled."
+        Write-Host ""
+        return
+    }
 
-    # # Confirm user wants to format
-    # Write-Host "You have selected Drive $($chosenDrive) - $($disk.FriendlyName)"
-    # Write-Host "Are you sure you want to format this disk?"
-    # Write-Host "This will DELETE ALL DATA. Backup important files if needed."
-    # Write-Host ""
-    # Write-Host "(y/N): " -NoNewLine
-    # $confirmation = [System.Console]::ReadKey($true)
+    Clear-Host
 
-    # if ($confirmation.Key -ne 'y') {
-    #     Clear-Host
-    #     Write-Host "Formatting Cancelled."
-    #     Write-Host ""
-    #     return
-    # }
+    Write-Host "Please enter a name for the drive (max 11 chars for FAT16):"
+    Write-Host "> " -NoNewline
+    $name = Read-Colonless
+    if ($name.Length -gt 11) {
+        $name = $name.Substring(0, 11)
+        Write-Host "Name truncated to 11 characters: $name"
+    }
 
-    # Clear-Host
+    # Unmount the disk first
+    Write-Host "Unmounting disk $chosenDrive..."
+    diskutil unmountDisk $chosenDrive | Out-Null
 
-    # Write-Host "Please enter a name, for what you'd like to call this drive"
-    # Write-Host "(Less than or equal to 8 characters)"
-    # Write-Host "(Will automatically be converted to all caps)"
-    # Write-Host ""
-    # Write-Host "> " -NoNewline
-    # $name = Read-Colonless
+    # Erase the disk with MBR partition scheme and create a single FAT16 partition
+    # Note: diskutil does not allow specifying offset, but it will create a valid partition
+    Write-Host "Erasing and formatting disk $chosenDrive..."
+    $sizeGB = 2000
+    $sizeArg = "${sizeGB}m"
+    $eraseResult = diskutil partitionDisk $chosenDrive MBR "MS-DOS FAT16" $name $sizeArg
 
-    # # 1. Clear disk
-    # Clear-Disk -Number $chosenDrive -RemoveData -Confirm:$false
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Failed to format the disk."
+        return 0
+    }
 
-    # # 2. Initialize with MBR
-    # Set-Disk -Number $chosenDrive -PartitionStyle MBR
+    Write-Host "Successfully formatted drive! It is ready to be used with the CNC Machines."
 
-    # # 3. Create a new partition with whole disk
-    # $newPartition = New-Partition -DiskNumber $chosenDrive -Size 2GB -Offset 1MB -AssignDriveLetter
+    # Optionally open the volume in Finder
+    $mountPoint = "/Volumes/$name"
+    if (Test-Path $mountPoint) {
+        Start-Process open $mountPoint
+    }
 
-    # # 4. Format partition - TEMP DEBUGGING
-    # Format-Volume -DriveLetter $newPartition.DriveLetter -FileSystem FAT -NewFileSystemLabel $name -Confirm:$false
-
-    # # 5. Open in explorer
-    # Start-Process "explorer.exe" "$($newPartition.DriveLetter):\"
-
-    # Clear-Host
-    # Write-Host "Successfully formatted drive! It is all ready to be used with the CNC Machines."
+    return 1
 }
