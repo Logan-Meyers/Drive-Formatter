@@ -22,9 +22,10 @@ function Show-MainMenu {
         Write-Host ""
         Write-Host "1. Check a Drive"
         Write-Host "2. Format a Drive"
-        Write-Host "3. Exit"
+        Write-Host "3. Rename a partition"
+        Write-Host "4. Exit"
         Write-Host ""
-        Write-Host "Enter your choice (1-3): " -NoNewLine
+        Write-Host "Enter your choice (1-4): " -NoNewLine
         $choiceKey = [System.Console]::ReadKey($true)
 
         Clear-Host
@@ -34,11 +35,13 @@ function Show-MainMenu {
             '1'      { Show-CheckMenu  }
             'D2'     { Show-FormatMenu }
             '2'      { Show-FormatMenu }
-            'D3'     { Exit }
-            '3'      { Exit }
+            'D3'     { Show-RenameMenu }
+            '3'      { Show-RenameMenu }
+            'D4'     { Exit }
+            '4'      { Exit }
             'Escape' { Exit }
             default {
-                Write-Host "Please choose a number in the range 1-3"
+                Write-Host "Please choose a number in the range 1-4"
             }
         }
     }  while ($true)

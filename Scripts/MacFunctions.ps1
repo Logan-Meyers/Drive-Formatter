@@ -269,3 +269,37 @@ function Show-FormatMenu {
 
     return 1
 }
+
+### This function handles renaming a partition
+### This will ask for a drive, a new partition name, and renames the 1st partition
+function Show-RenameMenu {
+    $chosenDrive = Get-WantedDrive "rename"
+
+    if (-not $chosenDrive) {
+        Clear-Host
+        return
+    }
+
+    Clear-Host
+
+    Write-Host "You have selected drive $chosenDrive"
+    Write-Host
+    Write-Host "What would you like to rename the partition to?"
+    Write-Host "> " -NoNewline
+
+    $newName = Read-Colonless
+
+    # Unmount the disk first
+    # Write-Host "Unmounting disk $chosenDrive..."
+    # diskutil unmountDisk $chosenDrive | Out-Null
+
+    $partitions = $diskList | Where-Object { $_ -match "disk\ds\d+"} | ForEach-Object {
+        if ($_ -match "(disk\ds\d+)") { $matches[1] }
+    }
+
+    $partitionCount = $partitions.Count
+
+    Write-Host "Partitions found: $partitionCount"
+    Write-Host "Partition list: $($partitions -join ', ')"
+
+}

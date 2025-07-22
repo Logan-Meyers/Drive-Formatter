@@ -172,3 +172,9 @@ function Show-FormatMenu {
     Clear-Host
     Write-Host "Successfully formatted drive! It is all ready to be used with the CNC Machines."
 }
+
+### This function handles renaming a partition
+### This will ask for a drive, a new partition name, and renames the 1st partition
+function Show-RenameMenu {
+    Write-Host "Windows not supported for this function!"
+}
