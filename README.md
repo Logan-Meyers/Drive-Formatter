@@ -39,3 +39,7 @@ Low-level (script) functionality
 - Allow creating a partition of the remaining size for other use
 - Allow copying all files off of partition before formatting, and move back after formatting
 - Batch format drives?
+- Better progress output
+- Better UI flow
+- Better Error handling
+- Abstract diskutil and Storage functions used often
