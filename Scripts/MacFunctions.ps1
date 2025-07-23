@@ -61,7 +61,7 @@ function Get-WantedDrive($actionPrompt) {
         foreach ($disk in $disks) {
             $cur += 1
 
-            Write-Host "$(if ($cur -eq $selected) { '> ' } else { '  ' })Drive $($disk.Description)"
+            Write-Host "$(if ($cur -eq $selected) { '> ' } else { '  ' })$($disk.Description)"
         }
 
         Write-Host "$(if ($selected -eq $maxSelection) { '> ' } else { '  ' })Re-scan for drives"
@@ -235,13 +235,7 @@ function Show-FormatMenu {
 
     Clear-Host
 
-    Write-Host "Please enter a name for the drive (max 11 chars for FAT16):"
-    Write-Host "> " -NoNewline
-    $name = Read-Colonless
-    if ($name.Length -gt 11) {
-        $name = $name.Substring(0, 11)
-        Write-Host "Name truncated to 11 characters: $name"
-    }
+    $name = Get-FatPartName
 
     # Unmount the disk first
     Write-Host "Unmounting disk $chosenDrive..."
@@ -280,18 +274,27 @@ function Show-RenameMenu {
         return
     }
 
+    Write-Host $chosenDrive
+
+    $output = diskutil info "$($chosenDrive)s1"
+    $oldName = ""
+
+    foreach ($line in $output) {
+        if ($line -match "^\s*Volume Name\s*:\s*(.+)$") {
+            $oldName = $matches[1].Trim()
+            break
+        }
+    }
+
     Clear-Host
 
-    Write-Host "You have selected drive $chosenDrive"
-    Write-Host
-    Write-Host "What would you like to rename the partition to?"
-    Write-Host "> " -NoNewline
-
-    $newName = Read-Colonless
+    $newName = Get-FatPartName -partition $chosenDrive -oldName $oldName
 
     # Unmount the disk first
     # Write-Host "Unmounting disk $chosenDrive..."
     # diskutil unmountDisk $chosenDrive | Out-Null
+
+    $diskList = diskutil list $chosenDrive | Out-String
 
     $partitions = $diskList | Where-Object { $_ -match "disk\ds\d+"} | ForEach-Object {
         if ($_ -match "(disk\ds\d+)") { $matches[1] }
@@ -302,4 +305,10 @@ function Show-RenameMenu {
     Write-Host "Partitions found: $partitionCount"
     Write-Host "Partition list: $($partitions -join ', ')"
 
+    if ($partitionCount -lt 1) {
+        Write-Host "Sorry, there are no partition on this device! You'll need to format it first."
+        return 0
+    }
+
+    diskutil rename "$($chosenDrive)s1" $newName
 }

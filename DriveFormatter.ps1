@@ -1,3 +1,6 @@
+# Import UI functions
+. "$PSScriptRoot/Scripts/UI.ps1"
+
 # import the correct functions based on operating system
 if ($IsMacOS) {
     . "$PSScriptRoot/Scripts/MacFunctions.ps1"
@@ -17,6 +20,7 @@ function Read-Colonless($prompt) {
 }
 
 function Show-MainMenu {
+    Clear-Host
     do {
         Write-Host "Welcome! Please select an option below by typing a number:"
         Write-Host ""
