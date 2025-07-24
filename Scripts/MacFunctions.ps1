@@ -38,6 +38,8 @@ function Get-WantedDrive($actionPrompt) {
         return $disks
     }
 
+    Write-Host "Loading"
+
     # list of disks
     $disks = Get-ExternalDisks
     
@@ -52,9 +54,9 @@ function Get-WantedDrive($actionPrompt) {
     while ($true) {
         Clear-Host
 
-        Write-Host "Use arrow keys to change which drive you'd like to $actionPrompt"
-        Write-Host "Press enter to select the drive and continue"
-        Write-Host "Press escape to go back to the main menu"
+        Write-Host "ARROW KEYS: change which drive you'd like to $actionPrompt"
+        Write-Host "ENTER: select the drive and continue"
+        Write-Host "ESCAPE: return back to the main menu"
         Write-Host ""
 
         $cur = 0
@@ -106,6 +108,9 @@ function Show-CheckMenu {
 
     # exit if no valid drive selected (< 1 or null)
     if (-not $chosenDrive) {
+        Clear-Host
+        Write-Host "No drive selected, returning to main menu..."
+        Write-Host ""
         return
     }
 
@@ -177,17 +182,17 @@ function Show-CheckMenu {
 
     if ($firstPartInfo["Partition Type"] -ne "Windows_FAT_16" -and $firstPartInfo["Partition Type"] -ne "DOS_FAT_16") {
         $correctlyFormatted = 0
-        Write-Host "The partition has the wrong partition type! ($($firstPartInfo["Partition Type"]))"
+        Write-Host "!! The partition has the wrong partition type! ($($firstPartInfo["Partition Type"]))"
     }
 
     if ($partitionOffsetBytes -ne 1048576) {
         $correctlyFormatted = 0
-        Write-Host "The partition has the wrong partition offset! ($partitionOffsetBytes)"
+        Write-Host "!! The partition has the wrong partition offset! ($partitionOffsetBytes)"
     }
 
     if ($diskSizeBytes -gt $twoGB -or $diskSizeBytes -lt $eightMB) {
         $correctlyFormatted = 0
-        Write-Host "The partition has the wrong size! ($diskSizeBytes)"
+        Write-Host "!! The partition has the wrong size! ($diskSizeBytes)"
     }
 
     Write-Host ""
@@ -195,15 +200,13 @@ function Show-CheckMenu {
     if ($correctlyFormatted -gt 0) {
         Write-Host "-- The partition is correctly formatted! --"
     } else {
-        Write-Host "-- This drive will need to be formatted! --"
+        Write-Host ">> This drive will need to be formatted! <<"
     }
 
     Write-Host ""
     Write-Host "Press enter to continue back to main menu..."
     Read-Host
     Clear-Host
-
-    return 1
 }
 
 ### This function handles formatting a drive
@@ -246,22 +249,26 @@ function Show-FormatMenu {
     Write-Host "Erasing and formatting disk $chosenDrive..."
     $sizeGB = 2000
     $sizeArg = "${sizeGB}m"
-    $eraseResult = diskutil partitionDisk $chosenDrive MBR "MS-DOS FAT16" $name $sizeArg
+    diskutil partitionDisk $chosenDrive MBR "MS-DOS FAT16" $name $sizeArg
+
+    Write-Host ""
 
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Failed to format the disk."
-        return 0
+    } else {
+        Write-Host "Successfully formatted drive! It is ready to be used with the CNC Machines."
+
+        # Optionally open the volume in Finder
+        $mountPoint = "/Volumes/$name"
+        if (Test-Path $mountPoint) {
+            Start-Process open $mountPoint
+        }
     }
 
-    Write-Host "Successfully formatted drive! It is ready to be used with the CNC Machines."
-
-    # Optionally open the volume in Finder
-    $mountPoint = "/Volumes/$name"
-    if (Test-Path $mountPoint) {
-        Start-Process open $mountPoint
-    }
-
-    return 1
+    Write-Host ""
+    Write-Host "Press enter to continue back to main menu..."
+    Read-Host
+    Clear-Host
 }
 
 ### This function handles renaming a partition

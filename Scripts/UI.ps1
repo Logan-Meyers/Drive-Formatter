@@ -34,6 +34,8 @@ function Get-FatPartName {
     # Get user input
     $newName = Read-Colonless
 
+    Clear-Host
+
     # Process input - truncation
     if ($newName.Length -gt 11) {
         $newName = $newName.Substring(0, 11)

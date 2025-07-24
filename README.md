@@ -43,3 +43,4 @@ Low-level (script) functionality
 - Better UI flow
 - Better Error handling
 - Abstract diskutil and Storage functions used often
+- Consistent UI feel and UX format
