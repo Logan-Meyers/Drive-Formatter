@@ -42,6 +42,7 @@ Low-level (script) functionality
 - Better progress output
 - Better Listing of drives (include partition names found on that drive)
 - Better UI flow
-- Better Error handling
+- Better Error handling (no details entered, error in commands, etc)
 - Abstract diskutil and Storage functions used often
 - Consistent UI feel and UX format
+- Fix function comments
