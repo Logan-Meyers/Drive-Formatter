@@ -46,3 +46,4 @@ Low-level (script) functionality
 - Abstract diskutil and Storage functions used often
 - Consistent UI feel and UX format
 - Fix function comments
+- Easy way to call script from any system (irm | iex for windows, .app or curl for mac)
