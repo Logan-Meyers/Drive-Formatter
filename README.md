@@ -40,6 +40,7 @@ Low-level (script) functionality
 - Allow copying all files off of partition before formatting, and move back after formatting
 - Batch format drives?
 - Better progress output
+- Better Listing of drives (include partition names found on that drive)
 - Better UI flow
 - Better Error handling
 - Abstract diskutil and Storage functions used often

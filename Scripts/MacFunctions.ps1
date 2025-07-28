@@ -38,7 +38,7 @@ function Get-WantedDrive($actionPrompt) {
         return $disks
     }
 
-    Write-Host "Loading"
+    Write-Host "Loading drives..."
 
     # list of disks
     $disks = Get-ExternalDisks
@@ -63,7 +63,9 @@ function Get-WantedDrive($actionPrompt) {
         foreach ($disk in $disks) {
             $cur += 1
 
-            Write-Host "$(if ($cur -eq $selected) { '> ' } else { '  ' })$($disk.Description)"
+            $shortDesc = $disk.Description -split '\(' | Select-Object -First 1
+            $shortDesc = $shortDesc.Trim()
+            Write-Host "$(if ($cur -eq $selected) { '> ' } else { '  ' })$($shortDesc)"
         }
 
         Write-Host "$(if ($selected -eq $maxSelection) { '> ' } else { '  ' })Re-scan for drives"
@@ -84,6 +86,9 @@ function Get-WantedDrive($actionPrompt) {
             }
             'Enter' {
                 if ($selected -eq $maxSelection) {
+                    Write-Host ""
+                    Write-Host "Re-scanning drives..."
+                    
                     $disks = Get-ExternalDisks
                     $maxSelection = $disks.Count + 1
                     $selected = 1
@@ -195,11 +200,10 @@ function Show-CheckMenu {
         Write-Host "!! The partition has the wrong size! ($diskSizeBytes)"
     }
 
-    Write-Host ""
-
     if ($correctlyFormatted -gt 0) {
         Write-Host "-- The partition is correctly formatted! --"
     } else {
+        Write-Host ""
         Write-Host ">> This drive will need to be formatted! <<"
     }
 
