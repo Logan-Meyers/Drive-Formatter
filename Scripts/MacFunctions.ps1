@@ -185,21 +185,25 @@ function Show-CheckMenu {
 
     $correctlyFormatted = 1
 
+    # Partition type: Either Windows_FAT_16 or DOS_FAT_16
     if ($firstPartInfo["Partition Type"] -ne "Windows_FAT_16" -and $firstPartInfo["Partition Type"] -ne "DOS_FAT_16") {
         $correctlyFormatted = 0
         Write-Host "!! The partition has the wrong partition type! ($($firstPartInfo["Partition Type"]))"
     }
 
+    # offset of 1024
     if ($partitionOffsetBytes -ne 1048576) {
         $correctlyFormatted = 0
         Write-Host "!! The partition has the wrong partition offset! ($partitionOffsetBytes)"
     }
 
+    # size < 2GB and > 8MB
     if ($diskSizeBytes -gt $twoGB -or $diskSizeBytes -lt $eightMB) {
         $correctlyFormatted = 0
         Write-Host "!! The partition has the wrong size! ($diskSizeBytes)"
     }
 
+    # Final results
     if ($correctlyFormatted -gt 0) {
         Write-Host "-- The partition is correctly formatted! --"
     } else {
