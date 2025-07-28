@@ -2,8 +2,14 @@ PS2EXE:
     GitHub: https://github.com/MScholtes/PS2EXE
 
     In Powershell, admin:
-    `Install-Module ps2exe`
+        Install-Module ps2exe
 
     To Convert my script:
-    `ps2exe .\DriveFormatter.ps1 .\DriveFormatter.exe -requireAdmin -iconFile "USB_Icon.ico" -x64 -MTA`
+        ps2exe .\DriveFormatter.ps1 .\DriveFormatter.exe -requireAdmin -iconFile "USB_Icon.ico" -x64 -MTA
 
+irm | iex:
+    Github Drive Formatter raw link:
+        https://raw.githubusercontent.com/Logan-Meyers/Drive-Formatter/refs/heads/main/DriveFormatter.ps1
+
+    Run script:
+        irm "https://raw.githubusercontent.com/Logan-Meyers/Drive-Formatter/refs/heads/main/DriveFormatter.ps1" | iex
