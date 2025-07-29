@@ -16,6 +16,10 @@ if (-not $MyInvocation.MyCommand.Path) {
         Write-Host "Loading $script from internet..."
         $content = Invoke-RestMethod -Uri $scriptUrl -UseBasicParsing
         Invoke-Expression $content
+        
+        Write-Host "Press enter to continue..." -NoNewline
+        $UserInput = $Host.UI.ReadLine()
+        $UserInput
     }
 }
 else {
