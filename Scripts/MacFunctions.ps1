@@ -1,6 +1,6 @@
 ### This function lists all drives external and physical, and asks for which drive the user wants to manage
 ### For example, this might return /dev/disk3
-function Get-WantedDrive($actionPrompt) {
+function Get-MacWantedDrive($actionPrompt) {
     function Get-ExternalDisks {
         $diskList = diskutil list | Out-String
         $blocks = $diskList -split "(/dev/disk\d+)" | Where-Object { $_ -match "^/dev/disk\d+" }
@@ -108,7 +108,7 @@ function Get-WantedDrive($actionPrompt) {
 ### This function handles checking a drive
 ### This will check the formatting of the drive and give a success value
 ### This might return 0 (fail) or 1 (success)
-function Show-CheckMenu {
+function Show-MacCheckMenu {
     $chosenDrive = Get-WantedDrive("check")
 
     # exit if no valid drive selected (< 1 or null)
@@ -220,7 +220,7 @@ function Show-CheckMenu {
 ### This function handles formatting a drive
 ### This will format the drive, resulting in loss of data
 ### This will return either a success value, either 0 (fail) or 1 (success)
-function Show-FormatMenu {
+function Show-MacFormatMenu {
     $chosenDrive = Get-WantedDrive "format"
 
     if (-not $chosenDrive) {
@@ -281,7 +281,7 @@ function Show-FormatMenu {
 
 ### This function handles renaming a partition
 ### This will ask for a drive, a new partition name, and renames the 1st partition
-function Show-RenameMenu {
+function Show-MacRenameMenu {
     $chosenDrive = Get-WantedDrive "rename"
 
     if (-not $chosenDrive) {

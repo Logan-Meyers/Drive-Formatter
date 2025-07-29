@@ -1,6 +1,6 @@
 ### This function lists all drives other than 0, and asks for which drive the user would like to manage
 ### For example, this might return 1
-function Get-WantedDrive($actionPrompt) {
+function Get-WinWantedDrive($actionPrompt) {
     Write-Host "Loading drives..."
     
     # list of disks
@@ -70,7 +70,7 @@ function Get-WantedDrive($actionPrompt) {
 ### This function handles checking a drive
 ### This will check the formatting of the drive and give a success value
 ### This might return 0 (fail) or 1 (success)
-function Show-CheckMenu {
+function Show-WinCheckMenu {
     $chosenDrive = Get-WantedDrive("check")
 
     # exit if no valid drive selected (< 1 or null)
@@ -83,7 +83,8 @@ function Show-CheckMenu {
     # Get the first partition of the chosen drive
     $firstPartition = Get-Partition -DiskNumber $chosenDrive | Select-Object -First 1
 
-    Write-Host $firstPartition
+    # debugging ntfs
+    # Write-Host $firstPartition
 
     # Exit if no partitions on the drive (no first partition)
     if (-not $firstPartition) {
@@ -136,7 +137,7 @@ function Show-CheckMenu {
 ### This function handles formatting a drive
 ### This will format the drive, resulting in loss of data
 ### This will return either a success value, either 0 (fail) or 1 (success)
-function Show-FormatMenu {
+function Show-WinFormatMenu {
     $chosenDrive = Get-WantedDrive("format")
 
     if (-not $chosenDrive) {
@@ -204,7 +205,7 @@ function Show-FormatMenu {
 
 ### This function handles renaming a partition
 ### This will ask for a drive, a new partition name, and renames the 1st partition
-function Show-RenameMenu {
+function Show-WinRenameMenu {
     $chosenDriveNumber = Get-WantedDrive "rename"
 
     if (-not $chosenDriveNumber) {
