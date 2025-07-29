@@ -16,8 +16,13 @@ function Get-RequiredFiles {
             $scriptUrl = "$baseUrl/$script"
             Write-Host "Loading $script from internet..."
             $content = Invoke-RestMethod -Uri $scriptUrl -UseBasicParsing
-            Invoke-Expression $content
-            
+
+            # Dot-source the script content by saving to temp file
+            $tempFile = [System.IO.Path]::GetTempFileName() + ".ps1"
+            Set-Content -Path $tempFile -Value $content -Encoding UTF8
+            . $tempFile
+            Remove-Item $tempFile
+
             Write-Host "Press enter to continue..." -NoNewline
             $UserInput = $Host.UI.ReadLine()
             $UserInput
